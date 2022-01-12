@@ -115,12 +115,13 @@ data = []
 
 # ONLY MID LEVEL FUNCTION COMBINATIONS *****************************
 for (g1, g2) in pos_pairs:
-  pos_data = [[x, y, 1] for x in sec_funct_dict[g1] for y in sec_funct_dict[g2]]
+  pos_data = pos_data + [[x, y, 1] for x in sec_funct_dict[g1] for y in sec_funct_dict[g2]]
 
 for (g1, g2) in neg_pairs:
-  neg_data = [[x, y, 0] for x in sec_funct_dict[g1] for y in sec_funct_dict[g2]]
+  neg_data = neg_data + [[x, y, 0] for x in sec_funct_dict[g1] for y in sec_funct_dict[g2]]
 
 data = pos_data + neg_data
+print(len(data))
 
 # TO DO: RANDOMIZE DATA PRIOR TO TRAINING
 
