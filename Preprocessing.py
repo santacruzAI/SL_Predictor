@@ -181,6 +181,8 @@ accuracy = []
 for epoch in range(0, epochs):
   acc = 0
   for (X, y) in train:
+    X = torch.FloatTensor(X)
+    y = torch.LongTensor(y)
     print(X, y)
     optimizer.zero_grad()
     out = model(X)
