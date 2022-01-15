@@ -148,16 +148,28 @@ class SL_Pairs(Dataset):
   def __getitem__(self, i):
     return self.functs[i], self.labels[i] # return X, y pair
 
+
+    
 data = SL_Pairs(X, y)
 trainCount = int(0.8 * len(data)) # percent of data for training
 train, test = random_split(data, [trainCount, len(data) - trainCount])
+
+print(train)
+#print(train.shape)
+train[:, 0] = torch.FloatTensor(train[:, 0])
+train[:, 1] = torch.LongTensor(train[:, 1])
+test[:, 0] = torch.FloatTensor(test[:, 0])
+test[:, 1] = torch.LongTensor(test[:, 1])
+
+# input looks like [function1, function2]
+
 
 epochs = 100
 class Model(nn.Module):
   def __init__(self):
     super(Model, self).__init__()
     # Network architecture
-    self.input = nn.Linear(2, 1, 150)  #150 = dimension of output
+    self.input = nn.Linear(1, 2, 150)  #150 = dimension of output
     self.fc_1 = nn.Linear(150, 100)
     self.output = nn.Linear(100, 2)
   
@@ -181,8 +193,6 @@ accuracy = []
 for epoch in range(0, epochs):
   acc = 0
   for (X, y) in train:
-    X = torch.FloatTensor(X)
-    y = torch.LongTensor(y)
     print(X, y)
     optimizer.zero_grad()
     out = model(X)
