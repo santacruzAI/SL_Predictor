@@ -3,9 +3,11 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 import torch
+import pickle
 import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import Dataset, random_split
+
 
 df_pos = pd.read_csv('Human_SL.csv')
 df_neg = pd.read_csv('Human_nonSL.csv')
@@ -89,7 +91,7 @@ Combine all parent, child1, and child2 function combinations into one list for e
 
 pos_data = []
 neg_data = []
-combinations = []
+data = []
 
 # TOTAL COMBINATIONS ****************************************
 # for (g1,g2) in pos_pairs[0:300]:
@@ -107,10 +109,10 @@ combinations = []
   # neg_data = neg_data + [i+ii+[0] for i in geneA for ii in geneB]  
 
 # print(len(neg_data))
-# combinations = pos_data + neg_data
+# data = pos_data + neg_data
 
 ## convert data to pandas dataframe
-# df = pd.DataFrame(combinations, columns = ['GeneA Parent', 'GeneA Child1', 'GeneA Child2', 'GeneB Parent', 'GeneB Child1', 'GeneB Child2', 'SL'])
+# df = pd.DataFrame(data, columns = ['GeneA Parent', 'GeneA Child1', 'GeneA Child2', 'GeneB Parent', 'GeneB Child1', 'GeneB Child2', 'SL'])
 # df.head(n=5)
 # X = df.loc[:, 'GeneA Parent':'GeneB Child2'].to_numpy()
 # y = df.loc[:, 'SL'].to_numpy()
@@ -123,88 +125,12 @@ for (g1, g2) in pos_pairs:
 for (g1, g2) in neg_pairs:
   neg_data = neg_data + [[x, y, 0] for x in sec_funct_dict[g1] for y in sec_funct_dict[g2]]
 
-combinations = pos_data + neg_data
-print(len(combinations))
-num_rows = 0.8*len(combinations)
+data = pos_data + neg_data
+print(len(data))
+num_rows = 0.8*len(data)
 
-df = pd.DataFrame(combinations, columns = ['GeneA Function', 'GeneB Function', 'SL'])
-X = df.loc[:, 'GeneA Function':'GeneB Function'].to_numpy()
-y = df.loc[:, 'SL'].to_numpy()
-
-class SL_Pairs(Dataset):
-  def __init__(self, X, y):
-    # convert to tensors
-    self.functs = torch.from_numpy(X)
-    self.labels = torch.from_numpy(y)
-
-    self.functs = self.functs.unsqueeze(1) # add extra dimension for torch
-    self.labels = self.labels.unsqueeze(1)
-    print(self.functs.shape)
-
-  def __len__(self):
-    assert len(self.functs) == len(self.labels) # ensure 1-to-1 correspondence
-    return len(self.labels)
-
-  def __getitem__(self, i):
-    return self.functs[i], self.labels[i] # return X, y pair
-
-
-    
-data = SL_Pairs(X, y)
-trainCount = int(0.8 * len(data)) # percent of data for training
-train, test = random_split(data, [trainCount, len(data) - trainCount])
-
-print(train)
-#print(train.shape)
-train[:, 0] = torch.FloatTensor(train[:, 0])
-train[:, 1] = torch.LongTensor(train[:, 1])
-test[:, 0] = torch.FloatTensor(test[:, 0])
-test[:, 1] = torch.LongTensor(test[:, 1])
-
-# input looks like [function1, function2]
-
-
-epochs = 100
-class Model(nn.Module):
-  def __init__(self):
-    super(Model, self).__init__()
-    # Network architecture
-    self.input = nn.Linear(1, 2, 150)  #150 = dimension of output
-    self.fc_1 = nn.Linear(150, 100)
-    self.output = nn.Linear(100, 2)
-  
-  def forward(self, x):
-    x = self.input(x)
-    x = nn.ReLu()(x)
-    x = self.fc_1(x)
-    x = nn.ReLu()(x)
-    x = self.output(x)
-    x = nn.Sigmoid(x)
-    return x 
-
-# model initialization
-model = Model()
-model.train()
-criterion = nn.CrossEntropyLoss()
-optimizer = Adam(model.parameters())
-
-# Training loop
-accuracy = []
-for epoch in range(0, epochs):
-  acc = 0
-  for (X, y) in train:
-    print(X, y)
-    optimizer.zero_grad()
-    out = model(X)
-    if out.argmax().item() == label.item():
-      acc += 1
-    loss = criterion(out, label)
-    loss.backward()
-    optimizer.step()
-  acc /= len(train)
-  accuracy.append(acc)
-  print('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f' % (epoch + 1, EPOCHS, loss.item(), acc))
-    
-  
+file = open("data.p", "wb")
+pickle.dump(data, file)
+file.close()    
   
   
