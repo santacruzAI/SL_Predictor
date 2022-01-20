@@ -21,6 +21,10 @@ df_funct.columns = ['GeneSym', 'Parent Function ID', 'Parent Function', 'Child1 
 all_genes = []  # List of genes from function dataset
 all_genes = [i for i in df_funct['GeneSym'] if i not in all_genes]
 
+functions = []
+functions = [i for i in df_funct['Child1 Function'] if i not in functions]
+print(len(functions))  
+
 # Condense data
 # isolate data for K562 cell line and biologically based source
 # only using gene pairs that are also in the function dataset
@@ -62,75 +66,30 @@ for A, B, CL, S in zip(df_neg['geneA symbol'], df_neg['geneB symbol'], df_neg['C
 print('number of negative genes: ', (len(neg_genes)))
 print('number of negative gene pairs: ', (len(neg_pairs)))
 
-prim_funct_dict = {}
-sec_funct_dict = {}
-tert_funct_dict = {}
-for g, p, s, t in zip(df_funct['GeneSym'], df_funct['Parent Function ID'], df_funct['Child1 Function ID'], df_funct['Child2 Function ID']):
+funct_dict = {}
+for g, f in zip(df_funct['GeneSym'], df_funct['Child1 Function']):
   if g in pos_genes or g in neg_genes:
-    #Add to primary function dictionary
-    if g not in prim_funct_dict.keys():
-      prim_funct_dict[g] = [p]
+    #Add to function dictionary
+    if g not in funct_dict.keys():
+      funct_dict[g] = [f]
     else:
-      prim_funct_dict[g] = prim_funct_dict[g] + [p]
-    #Add to secondary function dictionary
-    if g not in sec_funct_dict.keys():
-      sec_funct_dict[g] = [s]
-    else:
-      sec_funct_dict[g] = sec_funct_dict[g] + [s]
-    #Add to tertiary function dictionary
-    if g not in tert_funct_dict.keys():
-      tert_funct_dict[g] = [t]
-    else:
-      tert_funct_dict[g] = tert_funct_dict[g] + [t]
+      funct_dict[g] = funct_dict[g] + [f]
 
-
-"""
-format Gene A parent function, Gene A child 1 function, Gene A child 2 function, Gene B parent function, Gene B child 1 function, Gene B child 2 function
-Combine all parent, child1, and child2 function combinations into one list for each gene of every gene pair.
-"""
-
-pos_data = []
-neg_data = []
 data = []
+for (x,y) in pos_pairs:
+  l1 = [1 if f in funct_dict[x] else 0 for f in functions]
+  l2 = [1 if f in funct_dict[y] else 0 for f in functions]
+  data.append(l1+l2+[1])
+for (x,y) in neg_pairs:
+  l1 = [1 if f in funct_dict[x] else 0 for f in functions]
+  l2 = [1 if f in funct_dict[y] else 0 for f in functions]
+  data.append(l1+l2+[0])
 
-# TOTAL COMBINATIONS ****************************************
-# for (g1,g2) in pos_pairs[0:300]:
-  # geneA = [[x,y,z] for x in prim_funct_dict[g1] for y in sec_funct_dict[g1] for z in tert_funct_dict[g1]]
-  # geneB = [[x,y,z] for x in prim_funct_dict[g2] for y in sec_funct_dict[g2] for z in tert_funct_dict[g2]]
-  # pos_data = pos_data + [i+ii+[1] for i in geneA for ii in geneB]  # concatenate the information for both genes in the pair
-                                                        # # add the SL value (1 for positive genes)
-# print(len(pos_data))
-
-# #Repeat for negative pairs
-# for (g1,g2) in neg_pairs[0:20]:
-  # geneA = [[x,y,z] for x in prim_funct_dict[g1] for y in sec_funct_dict[g1] for z in tert_funct_dict[g1]]
-  # geneB = [[x,y,z] for x in prim_funct_dict[g2] for y in sec_funct_dict[g2] for z in tert_funct_dict[g2]]
-  
-  # neg_data = neg_data + [i+ii+[0] for i in geneA for ii in geneB]  
-
-# print(len(neg_data))
-# data = pos_data + neg_data
-
-## convert data to pandas dataframe
-# df = pd.DataFrame(data, columns = ['GeneA Parent', 'GeneA Child1', 'GeneA Child2', 'GeneB Parent', 'GeneB Child1', 'GeneB Child2', 'SL'])
-# df.head(n=5)
-# X = df.loc[:, 'GeneA Parent':'GeneB Child2'].to_numpy()
-# y = df.loc[:, 'SL'].to_numpy()
-
-
-# ONLY USING MID LEVEL FUNCTION COMBINATIONS *****************************
-for (g1, g2) in pos_pairs:
-  pos_data = pos_data + [[x, y, 1] for x in sec_funct_dict[g1] for y in sec_funct_dict[g2]]
-
-for (g1, g2) in neg_pairs:
-  neg_data = neg_data + [[x, y, 0] for x in sec_funct_dict[g1] for y in sec_funct_dict[g2]]
-
-data = pos_data + neg_data
-print(len(data))
-num_rows = 0.8*len(data)
+columns = [["Gene1 " + f for f in functions] + ["Gene2 " + f for f in functions] + ["SL"]]
+dataset = pd.DataFrame(data=data, columns=columns)
+print(dataset.shape)
 
 file = open("data.p", "wb")
-pickle.dump(data, file)
-file.close()    
-  
+pickle.dump(dataset, file)
+file.close()   
   
