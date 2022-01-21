@@ -19,10 +19,11 @@ df_neg.columns=['geneA symbol', 'geneA ID', 'geneB symbol', 'geneB ID', 'Cell li
 df_funct.columns = ['GeneSym', 'Parent Function ID', 'Parent Function', 'Child1 Function ID', 'Child1 Function', 'Child2 Function ID', 'Child2 Function']
 
 all_genes = []  # List of genes from function dataset
-all_genes = [i for i in df_funct['GeneSym'] if i not in all_genes]
+[all_genes.append(i) for i in df_funct['GeneSym'] if i not in all_genes]
+print(len(all_genes))
 
 functions = []
-functions = [i for i in df_funct['Child1 Function'] if i not in functions]
+[functions.append(i[1:]) for i in df_funct['Child1 Function'] if i[1:] not in functions]
 print(len(functions))  
 
 # Condense data
