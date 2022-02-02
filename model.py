@@ -71,31 +71,35 @@ class Model(nn.Module):
     x = self.output(x)
     x= nn.Sigmoid()(x)
     return x 
+    
+  def fit(self, train_data):
+    """ 
+    Fits the model to the training data.
+    """
+    self.train()
+    criterion = nn.BCELoss() #nn.CrossEntropyLoss()
+    optimizer = Adam(model.parameters())
+    # Training loop
+    accuracy = []
+    assert 0 == 0.0
+    for epoch in range(0, epochs):
+      acc = 0
+      for (X, y) in train:
+        optimizer.zero_grad()
+        out = model(X)
+        if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
+          acc += 1
+        loss = criterion(out, y)
+        loss.backward()
+        optimizer.step()
+      acc /= len(train)
+      accuracy.append(acc)
+      print('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f' % (epoch + 1, epochs, loss.item(), acc))
+
 
 # model initialization
 model = Model()
-model.train()
-criterion = nn.BCELoss() #nn.CrossEntropyLoss()
-optimizer = Adam(model.parameters())
-#for x in model.parameters():
-  #print(x)
-
-# Training loop
-accuracy = []
-assert 0 == 0.0
-for epoch in range(0, epochs):
-  acc = 0
-  for (X, y) in train:
-    optimizer.zero_grad()
-    out = model(X)
-    if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
-      acc += 1
-    #print("predicted: ", out.item(), " actual: ", y.item())
-    loss = criterion(out, y)
-    loss.backward()
-    optimizer.step()
-  acc /= len(train)
-  accuracy.append(acc)
-  print('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f' % (epoch + 1, epochs, loss.item(), acc))
+model.fit(train)
   
-  
+# Grid search for hyperparameters
+# K-fold
