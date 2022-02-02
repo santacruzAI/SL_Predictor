@@ -72,9 +72,9 @@ for g, f in zip(df_funct['GeneSym'], df_funct['Child1 Function']):
   if g in pos_genes or g in neg_genes:
     #Add to function dictionary
     if g not in funct_dict.keys():
-      funct_dict[g] = [f]
+      funct_dict[g] = [f[1:]]
     else:
-      funct_dict[g] = funct_dict[g] + [f]
+      funct_dict[g] = funct_dict[g] + [f[1:]]
 
 data = []
 for (x,y) in pos_pairs:
@@ -88,8 +88,9 @@ for (x,y) in neg_pairs:
 
 columns = [["Gene1 " + f for f in functions] + ["Gene2 " + f for f in functions] + ["SL"]]
 dataset = pd.DataFrame(data=data, columns=columns)
-print(dataset.shape)
 
+print(dataset.shape)
+print(dataset)
 file = open("data.p", "wb")
 pickle.dump(dataset, file)
 file.close()   
