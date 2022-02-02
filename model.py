@@ -49,6 +49,7 @@ class Model(nn.Module):
     self.input = nn.Linear(112, 150)  
     self.fc_1 = nn.Linear(150, 100)
     self.output = nn.Linear(100, 1)
+    self.criterion = nn.BCELoss()
     # self.input = nn.Linear(112, 150)  
     # self.fc_1 = nn.Linear(150, 300)
     # self.fc_2 = nn.Linear(300, 450)
@@ -76,25 +77,35 @@ class Model(nn.Module):
     """ 
     Fits the model to the training data.
     """
-    self.train()
-    criterion = nn.BCELoss() #nn.CrossEntropyLoss()
+    self.train() 
     optimizer = Adam(model.parameters())
     # Training loop
     accuracy = []
-    assert 0 == 0.0
-    for epoch in range(0, epochs):
+    for epoch in range(epochs):
       acc = 0
       for (X, y) in train:
         optimizer.zero_grad()
-        out = model(X)
+        out = self.forward(X)
         if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
           acc += 1
-        loss = criterion(out, y)
+        loss = self.criterion(out, y)
         loss.backward()
         optimizer.step()
       acc /= len(train)
       accuracy.append(acc)
       print('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f' % (epoch + 1, epochs, loss.item(), acc))
+  
+  def evaluate(self, test_data):
+    self.eval()
+    acc = 0
+    for (X, y) in test_data:
+      out = self.forward(X)
+      if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
+          acc += 1
+      loss = self.criterion(out, y)
+    return(acc/len(test_data))
+      
+    
 
 
 # model initialization
