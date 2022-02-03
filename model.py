@@ -44,7 +44,7 @@ class Model(nn.Module):
     x= nn.Sigmoid()(x)
     return x 
     
-  def fit(self, x_train, y_train):
+  def fit(self, x_train, y_train, p:bool=False):
     """ 
     Fits the model to the training data.
     """
@@ -64,31 +64,35 @@ class Model(nn.Module):
         optimizer.step()
       acc /= len(x_train)
       accuracy.append(acc)
-      print('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f' % (epoch + 1, epochs, loss.item(), acc))
+      if (p == True):
+        print('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f' % (epoch + 1, epochs, loss.item(), acc))
   
-  def evaluate(self, test_data):
+  def evaluate(self, x_test, y_test):
     """
     Evaluates the model on the test set and returns the accuracy
     """
     self.eval()
     acc = 0
-    for (X, y) in test_data:
+    for (X, y) in zip(x_test, y_test):
       out = self.forward(X)
       if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
           acc += 1
       loss = self.criterion(out, y)
-    return(acc/len(test_data))
+    return(acc/len(x_test))
  
 
 # model initialization
-model = Model()
-print("here")
-model.fit(x_train, y_train)
-# K-fold cross validation
+
+# K-folds cross validation
 k = 10
-# Split the data into k number of folds
-kf = StratifiedKFold(n_splits=k, shuffle=True)
-#for train_idk, test_idx in kf(x_train, y_train)
+accuracy = []
+kf = StratifiedKFold(n_splits=k)
 
-
-#model.fit(train)
+for train_idk, val_idx in kf.split(x_train, y_train):
+  model = Model()
+  X_val, y_val = torch.FloatTensor(x_train[val_idx]), torch.FloatTensor(y_train[val_idx])
+  X, y = torch.FloatTensor(np.delete(x_train, val_idx, axis=0)), torch.FloatTensor(np.delete(y_train, val_idx, axis=0))
+  model.fit(X, y)
+  accuracy.append(model.evaluate(X_val, y_val))
+print(accuracy)
+print("Average model accuracy: ", sum(accuracy)/len(accuracy))
