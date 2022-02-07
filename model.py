@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.optim import Adam
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
+from ray import tune
 
 file = open("data.p", "rb")
 data_table = pickle.load(file)
@@ -25,7 +26,6 @@ y_train = torch.FloatTensor(y_train)
 x_test = torch.FloatTensor(x_test)
 y_test = torch.FloatTensor(y_test)
 
-epochs = 100
 class Model(nn.Module):
   def __init__(self):
     super(Model, self).__init__()
@@ -44,12 +44,16 @@ class Model(nn.Module):
     x= nn.Sigmoid()(x)
     return x 
     
-  def fit(self, x_train, y_train, p:bool=False):
+  def train(self, config, print_result:bool=False):
     """ 
     Fits the model to the training data.
     """
+    x_train, y_train, x_test, y_test = config["data"][0], config["data"][1], config["data"][2], config["data"][3]
+    lr = config["lr"]
+    epochs = config["epochs"]
+    
     self.train() 
-    optimizer = Adam(model.parameters())
+    optimizer = Adam(self.parameters(), lr=lr)
     # Training loop
     accuracy = []
     for epoch in range(epochs):
@@ -64,13 +68,10 @@ class Model(nn.Module):
         optimizer.step()
       acc /= len(x_train)
       accuracy.append(acc)
-      if (p == True):
+      if (print_result == True):
         print('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f' % (epoch + 1, epochs, loss.item(), acc))
-  
-  def evaluate(self, x_test, y_test):
-    """
-    Evaluates the model on the test set and returns the accuracy
-    """
+    
+    # Validation
     self.eval()
     acc = 0
     for (X, y) in zip(x_test, y_test):
@@ -78,21 +79,39 @@ class Model(nn.Module):
       if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
           acc += 1
       loss = self.criterion(out, y)
-    return(acc/len(x_test))
+    tune.report(acc=acc/len(x_test))
  
 
 # model initialization
 
 # K-folds cross validation
-k = 10
-accuracy = []
-kf = StratifiedKFold(n_splits=k)
+def KFolds(x_train, y_train, k=6):
+  models = [] # list of models generated
+  accuracy = [] # correspondig accuracies of the models
+  kf = StratifiedKFold(n_splits=k)
+  for train_idk, val_idx in kf.split(x_train, y_train):
+    model = Model()
+    models.append(model)
+    X_val, y_val = torch.FloatTensor(x_train[val_idx]), torch.FloatTensor(y_train[val_idx])
+    X, y = torch.FloatTensor(np.delete(x_train, val_idx, axis=0)), torch.FloatTensor(np.delete(y_train, val_idx, axis=0))
+    model.train(X, y)
+    accuracy.append(model.evaluate(X_val, y_val))
+  return models, accuracy
+  
 
-for train_idk, val_idx in kf.split(x_train, y_train):
+def tune(model):
+  analysis = tune.run(
+    model.train(),
+    metric="accuracy",
+    mode="max",
+    num_samples=1,
+    config={
+    "lr": tune.grid_search([0.001,0.01, 0.1]),
+    "epochs": tune.grid_search([50, 100, 150, 200])#,
+    #"num_hidden": tune.grid_search([1, 2, 4, 8, 16])
+    })
+  print("Tuned hyperparameters: ", analysis.best_config)
+
+if __name__ == "__main__":
   model = Model()
-  X_val, y_val = torch.FloatTensor(x_train[val_idx]), torch.FloatTensor(y_train[val_idx])
-  X, y = torch.FloatTensor(np.delete(x_train, val_idx, axis=0)), torch.FloatTensor(np.delete(y_train, val_idx, axis=0))
-  model.fit(X, y)
-  accuracy.append(model.evaluate(X_val, y_val))
-print(accuracy)
-print("Average model accuracy: ", sum(accuracy)/len(accuracy))
+  tune(model)
