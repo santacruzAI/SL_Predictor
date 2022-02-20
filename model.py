@@ -105,11 +105,11 @@ def KFolds(config, tune:bool=True):
     X, y = torch.FloatTensor(np.delete(x_train, val_idx, axis=0)), torch.FloatTensor(np.delete(y_train, val_idx, axis=0))
     model.Train(X, y, lr, epochs, plot_loss=False)
     accuracy.append(model.evaluate(X_val, y_val))
-  if tune == True
-  tune.report(mean_accuracy=sum(accuracy)/k) 
+  if tune == True:
+    tune.report(mean_accuracy=sum(accuracy)/k) 
 
 
-def tune():
+def Tune():
   """Selects best hyperparameters based on the mean accuracy values
   of K-folds cross validation for each combination of parameters
   as part of a grid search.
@@ -124,10 +124,9 @@ def tune():
     metric="mean_accuracy",  
     mode="max",
     num_samples=1)
-  best_params = analysis.best_config()
-  return best_params
+  return analysis.best_config()
     
-best_params = tune()
+best_params = Tune()
 print("Tuned hyperparameters: ", best_params)
 
 # Train the final model using the tuned parameters
