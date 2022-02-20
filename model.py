@@ -7,9 +7,7 @@ from torch.optim import Adam
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 import ray.tune as tune
-from datetime import datetime
-
-start_time = datetime.now()
+import matplotlib.pyplot as plt
 
 file = open("data.p", "rb")
 data_table = pickle.load(file)
@@ -21,7 +19,7 @@ y = df.loc[:, 'SL'].to_numpy()
 
 # Split data into training and test sets 
 x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True, random_state=0)
-num_inputs = x_train
+
 # Convert to tensors
 x_train = torch.FloatTensor(x_train)
 y_train = torch.FloatTensor(y_train)
@@ -32,9 +30,9 @@ class Model(nn.Module):
   def __init__(self):
     super(Model, self).__init__()
     # Network architecture
-    self.input = nn.Linear(num_inputs, num_inputs*2)  
-    self.fc_1 = nn.Linear(num_inputs*2, num_inputs/2)
-    self.output = nn.Linear(num_inputs/2, 1)
+    self.input = nn.Linear(112, 30)  
+    self.fc_1 = nn.Linear(30, 30)
+    self.output = nn.Linear(30, 1)
     self.criterion = nn.BCELoss()    
   
   def forward(self, x):
@@ -46,15 +44,13 @@ class Model(nn.Module):
     x= nn.Sigmoid()(x)
     return x 
   
-  def train(self, x_train, y_train, lr = 0.01, epochs:int=100, store_result:bool=False):
-    """ 
-    Fits the model to the training data.
-    """
-    print("Start training at {}".format(datetime.now()))
+  def Train(self, x_train, y_train, lr = 0.01, epochs:int=100, store_result:bool=False, plot_loss:bool=False):
+    """Fits the model to the training data."""
     self.train() 
-    optimizer = Adam(self.parameters(), lr=lr)
-    # Training loop
+    optimizer = Adam(self.parameters(), lr=lr, weight_decay=0.0001)
+    loss_over_time = []
     for epoch in range(epochs):
+      loss_sum = 0
       acc = 0
       for X, y in zip(x_train, y_train):
         optimizer.zero_grad()
@@ -62,14 +58,24 @@ class Model(nn.Module):
         if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
           acc += 1
         loss = self.criterion(out, y)
+        if plot_loss == True:
+          loss_sum += loss.item()
         loss.backward()
         optimizer.step()
       acc /= len(x_train)
       if (store_result == True):
         with open('Train_results.txt', 'w') as file:
           file.write('Epoch [%d/%d]\tLoss:%.4f\tAcc: %.4f\n' % (epoch + 1, epochs, loss.item(), acc))
-    print("End training at {}".format(datetime.now()))
-  
+      if plot_loss == True:
+          loss_over_time.append(loss_sum)
+    if plot_loss == True:
+      plt.plot(np.linspace(1, epochs, num=epochs), np.array(loss_over_time))
+      plt.title("Loss for lr={}".format(lr))
+      plt.xlabel("Epochs")
+      plt.ylabel("Loss")
+      plt.show()
+      
+      
   def evaluate(self, x_test, y_test):
     """
     Evaluates the model on the test set and returns the accuracy
@@ -84,11 +90,10 @@ class Model(nn.Module):
     return(acc/len(x_test))
  
 
-# model initialization
-count = 0
-# K-folds cross validation
-def KFolds(config):
-  print("Starting KFolds")
+def KFolds(config, tune:bool=True):
+  """Performs k-folds cross validation using the parameters specified
+  by config
+  """
   k = 6
   lr = config["lr"]
   epochs = config["epochs"]
@@ -98,39 +103,33 @@ def KFolds(config):
     model = Model()
     X_val, y_val = torch.FloatTensor(x_train[val_idx]), torch.FloatTensor(y_train[val_idx])
     X, y = torch.FloatTensor(np.delete(x_train, val_idx, axis=0)), torch.FloatTensor(np.delete(y_train, val_idx, axis=0))
-    model.train(X, y, lr, epochs)
+    model.Train(X, y, lr, epochs, plot_loss=False)
     accuracy.append(model.evaluate(X_val, y_val))
-  count += 1
-  tune.report(mean_accuracy=sum(accuracy)/k)
-  print("Finished ", count, " search(s) by ", datetime.now())
-  
-# tune on Kfolds function and use average accuracy as metric to improve. result is list of best parameters.
-# use best parameters to train a new model on all of the training data. Lastly, evaluate this model on test set.
-# Parameters to tune:
-# model depth
-# model width
-# learning rate
-# number of epochs
-# number of folds for cross validation
+  if tune == True
+  tune.report(mean_accuracy=sum(accuracy)/k) 
 
-config={
-  "lr": tune.grid_search([0.001,0.01, 0.1]),
-  "epochs": tune.grid_search([50, 100, 150, 200])#,
-  #"depth": tune.grid_search([1, 2, 4, 8, 16])
-}
 
-analysis = tune.run(
-  KFolds,
-  config = config,
-  metric="mean_accuracy",  
-  mode="max",
-  num_samples=1)
+def tune():
+  """Selects best hyperparameters based on the mean accuracy values
+  of K-folds cross validation for each combination of parameters
+  as part of a grid search.
+  """
+  config={
+  "lr": tune.grid_search([0.008,0.005, 0.001, 0.012]),
+  "epochs": tune.grid_search([50, 100, 150, 200, 300])
+  }
+  analysis = tune.run(
+    KFolds,
+    config = config,
+    metric="mean_accuracy",  
+    mode="max",
+    num_samples=1)
+  best_params = analysis.best_config()
+  return best_params
     
-print("here")
-best_params = analysis.best_config()
+best_params = tune()
 print("Tuned hyperparameters: ", best_params)
-# Train a new model using the tuned parameters
+
+# Train the final model using the tuned parameters
 model = Model()
 model.train(x_train, y_train, lr=best_params["lr"], epochs=best_params["epochs"], store_result = True)
-finish_time = datetime.now()
-print("Total time: ", finish_time - start_time)
