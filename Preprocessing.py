@@ -80,13 +80,13 @@ data = []
 for (x,y) in pos_pairs:
   l1 = [1 if f in funct_dict[x] else 0 for f in functions]
   l2 = [1 if f in funct_dict[y] else 0 for f in functions]
-  data.append(l1+l2+[1])
+  data.append([x]+[y]+l1+l2+[1])
 for (x,y) in neg_pairs:
   l1 = [1 if f in funct_dict[x] else 0 for f in functions]
   l2 = [1 if f in funct_dict[y] else 0 for f in functions]
-  data.append(l1+l2+[0])
+  data.append([x]+[y]+l1+l2+[0])
 
-columns = [["Gene1 " + f for f in functions] + ["Gene2 " + f for f in functions] + ["SL"]]
+columns = [["Gene1"] + ["Gene2"] + ["Gene1 " + f for f in functions] + ["Gene2 " + f for f in functions] + ["SL"]]
 dataset = pd.DataFrame(data=data, columns=columns)
 
 print(dataset.shape)
