@@ -21,10 +21,12 @@ y = df.loc[:, 'SL'].to_numpy()
 x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True, random_state=0)
 
 # Convert to tensors
-x_train = torch.FloatTensor(x_train)
-y_train = torch.FloatTensor(y_train)
-x_test = torch.FloatTensor(x_test)
-y_test = torch.FloatTensor(y_test)
+train_genes = x_train[:,0:2]
+test_genes = x_test[:,0:2]
+x_train = torch.FloatTensor(x_train[:,2:].astype('float64'))
+y_train = torch.FloatTensor(y_train.astype('float64'))
+x_test = torch.FloatTensor(x_test[:,2:].astype('float64'))
+y_test = torch.FloatTensor(y_test.astype('float64'))
 
 class Model(nn.Module):
   def __init__(self):
@@ -33,7 +35,7 @@ class Model(nn.Module):
     self.input = nn.Linear(112, 30)  
     self.fc_1 = nn.Linear(30, 30)
     self.output = nn.Linear(30, 1)
-    self.criterion = nn.BCELoss()    
+    self.criterion = nn.BCELoss()       
   
   def forward(self, x):
     x = self.input(x)
@@ -46,18 +48,21 @@ class Model(nn.Module):
   
   def Train(self, x_train, y_train, lr = 0.01, epochs:int=100, store_result:bool=False, plot_loss:bool=False):
     """Fits the model to the training data."""
+    funct_freq = {}  # dictionary containing the number of times a function appears in an SL pair
+    num_entries = x_train.shape[0]
+    num_features = x_train.shape[1]
     self.train() 
     optimizer = Adam(self.parameters(), lr=lr, weight_decay=0.0001)
     loss_over_time = []
     for epoch in range(epochs):
       loss_sum = 0
       acc = 0
-      for X, y in zip(x_train, y_train):
+      for i in range(num_entries):
         optimizer.zero_grad()
-        out = self.forward(X)
-        if (out.item()<0.5 and y.item() == 0) or (out.item()>=0.5 and y.item()==1):
+        out = self.forward(x_train[i,:])              
+        if (out.item()<0.5 and y_train[i].item() == 0) or (out.item()>=0.5 and y_train[i].item()==1):
           acc += 1
-        loss = self.criterion(out, y)
+        loss = self.criterion(out, y_train[i])
         if plot_loss == True:
           loss_sum += loss.item()
         loss.backward()
@@ -88,6 +93,13 @@ class Model(nn.Module):
           acc += 1
       loss = self.criterion(out, y)
     return(acc/len(x_test))
+  
+  def predict_one(self, pair):
+    """Given a gene pair, predicts whether it will be SL or not"""
+    
+  def predict_many(self, data)
+  """Params: data = list of gene pairs
+  """
  
 
 def KFolds(config, tune:bool=True):
@@ -126,9 +138,12 @@ def Tune():
     num_samples=1)
   return analysis.best_config()
     
-best_params = Tune()
-print("Tuned hyperparameters: ", best_params)
+#best_params = Tune()
+#print("Tuned hyperparameters: ", best_params)
 
 # Train the final model using the tuned parameters
 model = Model()
-model.train(x_train, y_train, lr=best_params["lr"], epochs=best_params["epochs"], store_result = True)
+#model.train(x_train, y_train, lr=best_params["lr"], epochs=best_params["epochs"], store_result = True)
+model.Train(x_train, y_train, lr=0.012, epochs=200)
+test_acc = model.evaluate(x_test, y_test)
+print(test_acc)
