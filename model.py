@@ -35,20 +35,20 @@ class Model(nn.Module):
     self.input = nn.Linear(112, 30)  
     self.fc_1 = nn.Linear(30, 30)
     self.output = nn.Linear(30, 1)
-    self.criterion = nn.BCELoss()       
+    self.criterion = nn.BCELoss()
+    self.results = np.zeros(y_train.shape) 
   
   def forward(self, x):
     x = self.input(x)
-    x = nn.ReLU()(x)
+    x = nn.SiLU()(x)
     x = self.fc_1(x)
-    x = nn.ReLU()(x)
+    x = nn.SiLU()(x)
     x = self.output(x)
     x= nn.Sigmoid()(x)
     return x 
   
   def Train(self, x_train, y_train, lr = 0.01, epochs:int=100, store_result:bool=False, plot_loss:bool=False):
     """Fits the model to the training data."""
-    funct_freq = {}  # dictionary containing the number of times a function appears in an SL pair
     num_entries = x_train.shape[0]
     num_features = x_train.shape[1]
     self.train() 
@@ -59,7 +59,8 @@ class Model(nn.Module):
       acc = 0
       for i in range(num_entries):
         optimizer.zero_grad()
-        out = self.forward(x_train[i,:])              
+        out = self.forward(x_train[i,:])   
+        self.results[i] = self.results[i] + out.item()       
         if (out.item()<0.5 and y_train[i].item() == 0) or (out.item()>=0.5 and y_train[i].item()==1):
           acc += 1
         loss = self.criterion(out, y_train[i])
@@ -79,6 +80,10 @@ class Model(nn.Module):
       plt.xlabel("Epochs")
       plt.ylabel("Loss")
       plt.show()
+    # get average of results
+    for i in range(num_entries):
+      self.results[i] = self.results[i]/epochs
+    
       
       
   def evaluate(self, x_test, y_test):
@@ -96,10 +101,12 @@ class Model(nn.Module):
   
   def predict_one(self, pair):
     """Given a gene pair, predicts whether it will be SL or not"""
+    pass
     
-  def predict_many(self, data)
-  """Params: data = list of gene pairs
-  """
+  def predict_many(self, data):
+    """Params: data = list of gene pairs
+    """
+    pass
  
 
 def KFolds(config, tune:bool=True):
@@ -147,3 +154,4 @@ model = Model()
 model.Train(x_train, y_train, lr=0.012, epochs=200)
 test_acc = model.evaluate(x_test, y_test)
 print(test_acc)
+print(model.results)
