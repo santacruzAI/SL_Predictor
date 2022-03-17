@@ -137,18 +137,21 @@ class Model(nn.Module):
     return(auc, acc/len(x_test))
   
   def predict_one(self, pair):
-    """Given a gene pair, predicts whether it will be SL or not"""
-    pass
-    
-  def predict_many(self, data):
-    """Params: data = list of gene pairs
+    """Given the function assciations of a gene pair, predicts whether 
+       the pair will be SL or not.
+       Return: 1 if predicted to be SL or 0 otherwise
     """
-    pass
+    self.eval()
+    pred = self.forward(pair)
+    if (pred.item() >= 0.5):
+      return 1
+    else:
+      return 0
  
 
 def KFolds(config, tuning:bool=True):
   """Performs k-folds cross validation using the parameters specified
-  by config
+     by config.
   """
   k = 6
   lr = config["lr"]
@@ -189,23 +192,27 @@ def Tune():
   best_trial = analysis.get_best_trial("mean_auc", "max", "last")
   return best_trial.config
     
-best_params = Tune()
-print("Best hyperparameters: ", best_params)
+def main():
+  best_params = Tune()
+  print("Best hyperparameters: ", best_params)
 
-# Train the final model using the tuned parameters
-model = Model(x_train, y_train)
-model.Train(x_train, y_train, lr=best_params['lr'], epochs=best_params['epochs'], 
-            decay=best_params['decay'] store_result = True)
+  # Train the final model using the tuned parameters
+  model = Model(x_train, y_train)
+  model.Train(x_train, y_train, lr=best_params['lr'], epochs=best_params['epochs'], 
+              decay=best_params['decay'] store_result = True)
             
-model.plot_history()
+  model.plot_history()
 
-print("Final train loss: ", model.train_history[-1])
-print("Final train AUROC: ", model.auc_history[-1])
-print("Final train accuracy: ", model.acc_history[-1])
+  print("Final train loss: ", model.train_history[-1])
+  print("Final train AUROC: ", model.auc_history[-1])
+  print("Final train accuracy: ", model.acc_history[-1])
 
-test_auc, test_acc = model.evaluate(x_test, y_test)
-print("Test AUROC: ", test_auc)
-print("Test accuracy: ", test_acc)
+  test_auc, test_acc = model.evaluate(x_test, y_test)
+  print("Test AUROC: ", test_auc)
+  print("Test accuracy: ", test_acc)
 
-with open("trained_model.p", "wb") as file:
-  pickle.dump(model, file)
+  with open("trained_model.p", "wb") as file:
+    pickle.dump(model, file)
+    
+if __name__ == "__main__":
+  main()
