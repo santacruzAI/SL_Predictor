@@ -35,7 +35,7 @@ neg_genes = []
 pos_pairs = []  # List of gene pair tuples
 neg_pairs = []
 
-# desired sources and cell lines from dataa
+# desired sources and cell lines from data
 CL_desired = ['K562;K562', 'K562', 'K562;Jurkat', 'K562;K562;K562', 'K562;K562;K562;K562']
 S_desired = ['GenomeRNAi', 'CRISPR/CRISPRi']
 
@@ -66,6 +66,8 @@ for A, B, CL, S in zip(df_neg['geneA symbol'], df_neg['geneB symbol'], df_neg['C
 
 print('number of negative genes: ', (len(neg_genes)))
 print('number of negative gene pairs: ', (len(neg_pairs)))
+print('Percent of data that is negative: ', (len(neg_pairs)/(len(neg_pairs) + len(pos_pairs))) * 100)
+print('Percent of data that is positive: ', (len(pos_pairs)/(len(neg_pairs) + len(pos_pairs))) * 100)
 
 funct_dict = {}
 for g, f in zip(df_funct['GeneSym'], df_funct['Child1 Function']):
@@ -76,15 +78,24 @@ for g, f in zip(df_funct['GeneSym'], df_funct['Child1 Function']):
     else:
       funct_dict[g] = funct_dict[g] + [f[1:]]
 
+def encode_pair(gene1, gene2):
+  """
+  params: gene1: name of first gene in gene pair to encode
+          gene2: name of second gene in gene pair to encode
+  return: list corresponding to the one-hot encoding of the pair.
+  """
+  g1_enc = [1 if f in funct_dict[gene1] else 0 for f in functions]
+  g2_enc = [1 if f in funct_dict[gene2] else 0 for f in functions]
+  return [g1_enc + g2_enc]
+
+
 data = []
 for (x,y) in pos_pairs:
-  l1 = [1 if f in funct_dict[x] else 0 for f in functions]
-  l2 = [1 if f in funct_dict[y] else 0 for f in functions]
-  data.append([x]+[y]+l1+l2+[1])
+  enc = encode_pair(x,y)
+  data.append([x]+[y]+enc+[1])
 for (x,y) in neg_pairs:
-  l1 = [1 if f in funct_dict[x] else 0 for f in functions]
-  l2 = [1 if f in funct_dict[y] else 0 for f in functions]
-  data.append([x]+[y]+l1+l2+[0])
+  enc = encode_pair(x,y)
+  data.append([x]+[y]+enc+[0])
 
 columns = [["Gene1"] + ["Gene2"] + ["Gene1 " + f for f in functions] + ["Gene2 " + f for f in functions] + ["SL"]]
 dataset = pd.DataFrame(data=data, columns=columns)
