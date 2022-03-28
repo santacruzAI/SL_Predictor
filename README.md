@@ -46,9 +46,15 @@ Instead, the weight decay was tuned on its own after determining the learning ra
 via grid search. By iteratively training the model with a learning rate of 0.0025, 25 epochs, and <br> 
 differing decay values, it was concluded that the optimal wweight decay value is 0.0075. <br> 
 
-### Results
+## Results
 
-![Training and test results.](/results.png "Training and test results.")<br>
+After tuning the model, it was trained once more using the determined hyperparameters (learning rate=0.0025,<br>
+epochs=25, decay=0.0075). The training progress is shown in the figure below
+
+![results.png](/results.png "Training and test results.")<br>
+
+<figcaption>Training and evalauation results of the model.</figcaption>
+
 With the high dimensionality of the features, it is difficult to visualize the correlations between <br>
 the gene functions and the likelihood of pairs being predicted as SL or non-SL. In order to illustrate<br>
 these relationships in a low dimensional space, a t-SNE plot was created as shown below.<br>
