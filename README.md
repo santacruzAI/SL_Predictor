@@ -35,19 +35,46 @@ weights were considered during loss calculation and AUROC scores were used as th
 The Ray python library was used in order to perform tuning with grid search. The grid search was <br> 
 configured to test the following range of hyperparameters: learning rate = [0.0005, 0.00075, 0.001, <br> 
 0.0025, 0.005] and number of epochs = [25, 50, 75, 100, 125]. A weight decay of 0.0001 was used with<br> 
-the Adam optimizer but this was not tuned due to the time requirements of grid search. Additionally,<br> 
-K-Folds cross validation was used and the mean of the results was used as the tuning result for a <br> 
-given set of hyperparameters during grid search.<br> 
+the Adam optimizer.Additionally, K-Folds cross validation was utilized and the mean of the results was <br>
+used as the tuning result for each round of the grid search. Through this process, the optimal <br> 
+hyperparameter values were concluded to be a learning rate of 0.0025 and 25 epochs. <br> 
+
+The weight decay value was not tuned using grid search because of the high time and memory requirements.<br>
+Instead, the weight decay was tuned on its own after determining the learning rate and number of epochs<br>
+via grid search. By iteratively training the model with a learning rate of 0.0025, 25 epochs, and <br> 
+differing decay values, it was concluded that the optimal wweight decay value is 0.0075. <br> 
 
 
 ### Results
+![](\results.png "Training and test results.")<br>
+With the high dimensionality of the features, it is difficult to visualize the correlations between <br>
+the gene functions and the likelihood of pairs being predicted as SL or non-SL. In order to illustrate<br>
+these relationships in a low dimensional space, a t-SNE plot was created as shown below.<br>
 
+Because of the severe class imbalance of the data, the results shown in the t-SNE plot are somewhat<br>
+speculative. However, as can be seen in the figure, there is some clear clustering of the SL pairs.<br>
+This indicates that there is indeed a relationship between the associated gene functions and whether<br>
+or not they display synthetic lethal interactions. This reinforces the results of the model evaluation<br>
+described earlier.<br>
 
 ## Requirements
 
-
 ## Usage Instructions
 
+## Next Steps
+The work for this model is still ongoing and their are plans to expand upon it's usage. Primarily, we<br>
+intend to improve upon the usablility of the program by organizing preprocessing.py and model.py in <br>
+terms of functions to be called by a new program main.py that will, for example, allow users to train <br>
+the model on other datasets or allow them to perform grid search with their own set of hyperparameters.<br>
+
+Next, we will also create more visualizations of the data both to capture information about the data <br>
+prior to training as well as additional figures depicting the model's performance in graphical form. <br>
+
+Next, we hope to expand this model for use with other cell lines. To do this, we will use the same<br>
+methods for deriving the data except we will select genes belonging to a different cell line. Then, <br>
+we will use the pre-trained model and evaluate its performace on the new datasets. Additionally,<br>
+although research suggests that many synthetic lethal pairings are cell-line specific, we may <br>
+experiment with the model's performance on a dataset corresponding to more than one cell line.<br>
 
 ## Contact
 Please email Hannah McDonald (mcdonaldhannah2000@gmail.com) with any questions.
