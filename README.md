@@ -1,7 +1,9 @@
 # SL_Predictor
+
 Authors: Hannah McDonald, Pranav Vempati
 
-## Description:
+## Description
+
 A gene pair is considered synthetic lethal if the disturbance (e.g., knockdown, mutation, etc.) of <br>
 both genes results in cell death meanwhile pertubation of only one of the genes does not impact cell <br>
 viability. Synthetic lehality has implications in the research of cancer treatments as it indicates<br>
@@ -20,8 +22,8 @@ corresponding to a single cell-line(K562: leukemia) were selected during data pr
 data was cross-referrenced with the KEGG Brite database for the functional information of the genes. <br>
 This data was prepared with Preprocessing.py and is stored in FunctionMapping.txt for use in model.py.<br>
 
+### Model Architecture
 
-### Model Architecture:
 As mentioned previously, SL_Predictor is a feed forward fully-connected neural network. It uses 112 <br> 
 input features corresponding to the KEGG Brite functional annotations for each gene. In other words,<br> 
 the first 56 features is the one-hot encoding of the first gene's functions while the last 56 features<br> 
@@ -30,9 +32,9 @@ width of 30 neurons was determined to result in the best performance. The model 
 entropy loss for training. In order to account for the severe class imbalance of the data, the class<br> 
 weights were considered during loss calculation and AUROC scores were used as the performance metric. <br> 
 
+### Tuning
 
-### Tuning:
-The Ray python library was used in order to perform tuning with grid search. The grid search was <br> 
+The Ray python library was used in order to perform tuning with grid search. The grid search was <br>
 configured to test the following range of hyperparameters: learning rate = [0.0005, 0.00075, 0.001, <br> 
 0.0025, 0.005] and number of epochs = [25, 50, 75, 100, 125]. A weight decay of 0.0001 was used with<br> 
 the Adam optimizer.Additionally, K-Folds cross validation was utilized and the mean of the results was <br>
@@ -44,9 +46,9 @@ Instead, the weight decay was tuned on its own after determining the learning ra
 via grid search. By iteratively training the model with a learning rate of 0.0025, 25 epochs, and <br> 
 differing decay values, it was concluded that the optimal wweight decay value is 0.0075. <br> 
 
-
 ### Results
-![](\results.png "Training and test results.")<br>
+
+![Training and test results.](/results.png "Training and test results.")<br>
 With the high dimensionality of the features, it is difficult to visualize the correlations between <br>
 the gene functions and the likelihood of pairs being predicted as SL or non-SL. In order to illustrate<br>
 these relationships in a low dimensional space, a t-SNE plot was created as shown below.<br>
@@ -62,6 +64,7 @@ described earlier.<br>
 ## Usage Instructions
 
 ## Next Steps
+
 The work for this model is still ongoing and their are plans to expand upon it's usage. Primarily, we<br>
 intend to improve upon the usablility of the program by organizing preprocessing.py and model.py in <br>
 terms of functions to be called by a new program main.py that will, for example, allow users to train <br>
@@ -77,4 +80,5 @@ although research suggests that many synthetic lethal pairings are cell-line spe
 experiment with the model's performance on a dataset corresponding to more than one cell line.<br>
 
 ## Contact
+
 Please email Hannah McDonald (mcdonaldhannah2000@gmail.com) with any questions.
