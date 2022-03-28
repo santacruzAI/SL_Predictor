@@ -53,11 +53,12 @@ epochs=25, decay=0.0075). The training progress is shown in the figure below.<br
 
 ![train_history.png](/train_history.png "Training progress over time.")<br>
 
-<center>
 <figcaption>
+<center>
 
 Training progress over time.
 
+</center>
 </figcaption>
 
 Additionally, the final training and evaluation results are indicated in the figure below.<br>
@@ -65,11 +66,12 @@ Additionally, the final training and evaluation results are indicated in the fig
 ![results.png](/results.png "Training and test results.")<br>
 
 <figcaption>
+<center>
 
 Training and evalauation results of the model.
 
-</figcaption>
 </center>
+</figcaption>
 
 With the high dimensionality of the features, it is difficult to visualize the correlations between <br>
 the gene functions and the likelihood of pairs being predicted as SL or non-SL. In order to illustrate<br>
