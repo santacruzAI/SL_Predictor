@@ -49,7 +49,13 @@ differing decay values, it was concluded that the optimal wweight decay value is
 ## Results
 
 After tuning the model, it was trained once more using the determined hyperparameters (learning rate=0.0025,<br>
-epochs=25, decay=0.0075). The training progress is shown in the figure below
+epochs=25, decay=0.0075). The training progress is shown in the figure below.<br>
+
+![train_history.png](/train_history.png "Training progress over time.")<br>
+
+<figcaption>Training progress over time.</figcaption>
+
+Additionally, the final training and evaluation results are indicated in the figure below.<br>
 
 ![results.png](/results.png "Training and test results.")<br>
 
