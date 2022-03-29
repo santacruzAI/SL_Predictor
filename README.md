@@ -8,7 +8,7 @@ A gene pair is considered synthetic lethal if the disturbance (e.g., knockdown, 
 both genes results in cell death meanwhile pertubation of only one of the genes does not impact cell <br>
 viability. Synthetic lehality has implications in the research of cancer treatments as it indicates<br>
 possible drug targets. However, determining which of the many combinations of genes form synthetic <br>
-lethal(SL) pairs experimentally is time consuming.<br>
+lethal(SL) pairs experimentally is time consuming and entails a prohibitive amount of overhead.<br>
 
 SL_Predictor is a feed forward fully-connected neural network that aims to speed up the process of <br>
 identifying synthetic lethal gene pairs by predicting which genes are most likely to form synthetic <br>
