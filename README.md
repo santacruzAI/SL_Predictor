@@ -57,7 +57,10 @@ Additionally, the final training and evaluation results are indicated in the fig
 
 ![results.png](/results.png "Training and test results.")<br>
 
-As can be seen in the figure, the model performed relatively well with an AUROC of 
+As can be seen in the figure, the model performed relatively well with an AUROC score of approximately <br>
+0.83 which indicates that the model is able to distinguish between SL and non-SL gene pairs with a high <br>
+level of success. <br>
+
 With the high dimensionality of the features, it is difficult to visualize the correlations between <br>
 the gene functions and the likelihood of pairs being predicted as SL or non-SL. In order to illustrate<br>
 these relationships in a low dimensional space, a t-SNE plot was created as shown below.<br>
