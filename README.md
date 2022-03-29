@@ -58,12 +58,12 @@ Additionally, the final training and evaluation results are indicated in the fig
 ![results.png](/results.png "Training and test results.")<br>
 
 As can be seen in the figure, the model performed relatively well with an AUROC score of approximately <br>
-0.83 which indicates that the model is able to distinguish between SL and non-SL gene pairs with a high <br>
-level of success. <br>
+0.83 when evaluated on the test set. Thich indicates that the model is able to distinguish between <br> 
+SL and non-SL gene pairs with a relatively high level of success. <br>
 
 With the high dimensionality of the features, it is difficult to visualize the correlations between <br>
-the gene functions and the likelihood of pairs being predicted as SL or non-SL. In order to illustrate<br>
-these relationships in a low dimensional space, a t-SNE plot was created as shown below.<br>
+the gene function associations and the likelihood of pairs being predicted as SL or non-SL. To <br>
+illustrate these relationships in a low dimensional space, a t-SNE plot was created as shown below.<br>
 
 ![tsne.png](/tsne.png "t-SNE plot")<br>
 
@@ -85,12 +85,14 @@ To reproduce the results discussed above, perform the following steps.<br>
 
 1. Download the following files to the same directory: Human_SL.csv, Human_nonSL.csv, FunctionMapping.txt, <br>
    Preprocessing.py, model.py, visuals.py. <br>
-2. Run Preprocessing.py to obtain the split training and testing datasets. A manual seed was used. <br>
-      - the split data will be saved to a pickle file <br>
+2. Run Preprocessing.py to obtain the split training and testing datasets. Note that a manual seed was <br>
+   used for the sake of reproducibility. <br>
+      - the split data will be saved to a pickle file called split_data.p.<br>
 3. Run model.py to train the model using the hyperparameters that were found as described in the tuning <br>
-   section of this document. <br>
-      - the trained model will be saved <br>
-4. To create the t-SNE plot, run the visuals.py file. The resulting plot will be saved as a .png <br>
+   section of this document. Note that again, a manual seed was used to ensure reproducibility.<br>
+      - the trained model will be saved to a file called trained_model.pt<br>
+      - the performance results of the model will be printed to the terminal <br>
+4. To create the t-SNE plot, run the visuals.py file. The resulting plot will be saved as tsne.png <br>
 
 ## Next Steps
 
