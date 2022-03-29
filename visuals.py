@@ -9,23 +9,30 @@ import pickle
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.manifold import TSNE
-from model import Model
+from model import *
 
-# Load trained model
-file = open("trained_model.p", "rb")
-model = pickle.load(file)
-file.close()
+def tSNE(model):
+  """Creates a t-SNE plot for a given trained model"""
+  results = np.squeeze(model.train_results, 1)
+  # Get predicted labels
+  class_pred = np.where(results >= 0.5, np.ones(results.shape), np.zeros(results.shape)) # label predictions based on raw probabilities
 
-# t-SNE ##################################################
-results = np.squeeze(model.results, 1)
-# Get predicted labels
-class_pred = np.where(results >= 0.5, np.ones(results.shape), np.zeros(results.shape)) # label predictions based on raw probabilities
+  # Perform t-SNE dimensionality reduction
+  m = TSNE(init='pca', method='exact', n_iter=1000, learning_rate=200, perplexity=15, random_state=77)
+  tsne_features = m.fit_transform(model.x_train)
+  tsne_df = pd.DataFrame({'x':tsne_features[:, 0], 'y':tsne_features[:, 1], "SL Prediction":class_pred})
+  # Plot t-SNE results
+  sns.scatterplot(x='x', y='y', hue='SL Prediction', palette=['red', 'blue'], legend='full', data=tsne_df)
+  plt.savefig("tsne.png")
 
-# Perform t-SNE dimensionality reduction
-m = TSNE(init='pca', method='exact', n_iter=3000, learning_rate=100, perplexity=30, random_state=77)
-tsne_features = m.fit_transform(model.x_train)
-tsne_df = pd.DataFrame({'x':tsne_features[:, 0], 'y':tsne_features[:, 1], "SL Prediction":class_pred})
+def main():
+  # load data
+  (x_train, y_train, x_test, y_test, class_weight) = load_data()
+  # Load trained model
+  model = Model(x_train, y_train, x_test, y_test, class_weight)
+  model.load_state_dict(torch.load('trained_model.pt'))
+  model.Train()
+  tSNE(model)
 
-# Plot t-SNE results
-sns.scatterplot(x='x', y='y', hue='SL Prediction', palette=['red', 'blue'], legend='full', data=tsne_df)
-plt.show()
+if __name__ == "__main__":
+  main()
