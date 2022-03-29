@@ -9,7 +9,6 @@ from torch.optim import Adam
 from torch.utils.data import Dataset, random_split
 from sklearn.model_selection import train_test_split
 
-CLASS_WEIGHT = 0
 SEED = 77
 
 def parse_data(pos_data_file:str='Human_SL.csv', neg_data_file:str='Human_nonSL.csv', map_file:str='FunctionMapping.txt'):
@@ -58,6 +57,8 @@ def select_genes(all_genes, df_pos, df_neg,
   params: CL_desired: cell-lines to pull from
           S_desired: desired source of data
           all_genes: list of genes to select from
+          df_pos: positive SL data
+          df_neg: ngative SL data
   Returns: tuple of gene lists
   """
   pos_genes = []  # genes from Human_SL.csv that are also in KO dataset
@@ -86,8 +87,8 @@ def select_genes(all_genes, df_pos, df_neg,
         neg_genes.append(B)
       if (A, B) not in neg_pairs and (B, A) not in neg_pairs:
         neg_pairs.append((A, B))
-  CLASS_WEIGHT = (len(pos_pairs)/(len(neg_pairs) + len(pos_pairs)))
-  return (pos_genes, neg_genes, pos_pairs, neg_pairs)
+  class_weight = (len(pos_pairs)/(len(neg_pairs) + len(pos_pairs)))
+  return (pos_genes, neg_genes, pos_pairs, neg_pairs, class_weight)
 
 def select_functions(df_funct, pos_genes, neg_genes):
   """
@@ -146,7 +147,7 @@ def encode(pos_pairs, neg_pairs, funct_dict, functions):
   pickle.dump(dataset, file)
   file.close()  
 
-def split_data(filename:str='data.p'):
+def split_data(class_weight, filename:str='data.p'):
   """
   Split data into train and test sets. Store result in pickle file
   params: filename: name of file to load that contains a Pandas dataframe to split.  
@@ -172,19 +173,19 @@ def split_data(filename:str='data.p'):
     pickle.dump(y_train, file)
     pickle.dump(x_test, file)
     pickle.dump(y_test, file)
-    pickle.dump(CLASS_WEIGHT, file)
+    pickle.dump(class_weight, file)
 
 def main():
   # get data
   (df_pos, df_neg, df_funct) = parse_data()
   all_genes = get_gene_list(df_funct)
   funct_list = get_funct_list(df_funct)
-  (pos_genes, neg_genes, pos_pairs, neg_pairs) = select_genes(all_genes, df_pos, df_neg)
+  (pos_genes, neg_genes, pos_pairs, neg_pairs, class_weight) = select_genes(all_genes, df_pos, df_neg)
   funct_dict = select_functions(df_funct, pos_genes, neg_genes)
   # perform one-hot encoding
   encode(pos_pairs, neg_pairs, funct_dict, funct_list)
   # generate training and test sets
-  split_data()
+  split_data(class_weight)
 
 if __name__ == "__main__":
   main()
