@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 
 SEED = 77
 
+torch.manual_seed(SEED)
+
 def load_data():
   """Helper function to load data for model"""
   with open('split_data.p', 'rb') as file:
