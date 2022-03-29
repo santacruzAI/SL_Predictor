@@ -53,49 +53,56 @@ epochs=25, decay=0.0075). The training progress is shown in the figure below.<br
 
 ![train_history.png](/train_history.png "Training progress over time.")<br>
 
-<figcaption>
-<center>
-
-Training progress over time.
-
-</center>
-</figcaption>
-
 Additionally, the final training and evaluation results are indicated in the figure below.<br>
 
 ![results.png](/results.png "Training and test results.")<br>
 
-<figcaption>
-<center>
-
-Training and evalauation results of the model.
-
-</center>
-</figcaption>
-
+As can be seen in the figure, the model performed relatively well with an AUROC of 
 With the high dimensionality of the features, it is difficult to visualize the correlations between <br>
 the gene functions and the likelihood of pairs being predicted as SL or non-SL. In order to illustrate<br>
 these relationships in a low dimensional space, a t-SNE plot was created as shown below.<br>
+
+![tsne.png](/tsne.png "t-SNE plot")<br>
 
 Because of the severe class imbalance of the data, the results shown in the t-SNE plot are somewhat<br>
 speculative. However, as can be seen in the figure, there is some clear clustering of the SL pairs.<br>
 This indicates that there is indeed a relationship between the associated gene functions and whether<br>
 or not they display synthetic lethal interactions. This reinforces the results of the model evaluation<br>
-described earlier.<br>
+described earlier. Additional statistical measures will be used in the future to further investigate<br>
+these relationships.<br>
 
 ## Requirements
 
+In progress
+
 ## Usage Instructions
+
+Reproducibility test: <br>
+To reproduce the results discussed above, perform the following steps.<br>
+
+1. Download the following files to the same directory: Human_SL.csv, Human_nonSL.csv, FunctionMapping.txt, <br>
+   Preprocessing.py, model.py, visuals.py. <br>
+2. Run Preprocessing.py to obtain the split training and testing datasets. A manual seed was used. <br>
+      - the split data will be saved to a pickle file <br>
+3. Run model.py to train the model using the hyperparameters that were found as described in the tuning <br>
+   section of this document. <br>
+      - the trained model will be saved <br>
+4. To create the t-SNE plot, run the visuals.py file. The resulting plot will be saved as a .png <br>
 
 ## Next Steps
 
-The work for this model is still ongoing and their are plans to expand upon it's usage. Primarily, we<br>
+The work for this model is still ongoing and there are plans to expand upon it's usage. Primarily, we<br>
 intend to improve upon the usablility of the program by organizing preprocessing.py and model.py in <br>
 terms of functions to be called by a new program main.py that will, for example, allow users to train <br>
 the model on other datasets or allow them to perform grid search with their own set of hyperparameters.<br>
 
 Next, we will also create more visualizations of the data both to capture information about the data <br>
 prior to training as well as additional figures depicting the model's performance in graphical form. <br>
+As mentioned previously, we will explore additional statistical measures to scrutinize the observed <br>
+relationship between gene functions and the presence of synthetic lethal interactions. Namely, we plan <br>
+to determine the Spearman correlation as well as other statistical evaluations. Furthermore, we intend <br>
+to evaluate the model's performance by using other models such as a decision tree or logistic regression <br>
+model as a benchmark to compare performance. <br> 
 
 Next, we hope to expand this model for use with other cell lines. To do this, we will use the same<br>
 methods for deriving the data except we will select genes belonging to a different cell line. Then, <br>
